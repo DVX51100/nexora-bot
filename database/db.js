@@ -1,10 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// ── Base de données JSON (pas de compilation C++ requise) ──────
 const DB_PATH = path.join(__dirname, 'nexora-data.json');
-
-const DEFAULT_DB = { guilds: {}, tickets: [] };
+const DEFAULT_DB = { guilds: {}, tickets: [], autoroles: {}, reactionRoles: {} };
 
 function load() {
   if (!fs.existsSync(DB_PATH)) {
@@ -12,7 +10,10 @@ function load() {
     return JSON.parse(JSON.stringify(DEFAULT_DB));
   }
   try {
-    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    if (!data.autoroles) data.autoroles = {};
+    if (!data.reactionRoles) data.reactionRoles = {};
+    return data;
   } catch {
     return JSON.parse(JSON.stringify(DEFAULT_DB));
   }
@@ -112,5 +113,89 @@ module.exports = {
   getAllGuilds() {
     const db = load();
     return Object.values(db.guilds);
+  },
+
+  // ── AUTO-RÔLES (ancienne version boutons) ─────────────────
+  getAutoroles(guildId) {
+    const db = load();
+    return db.autoroles[guildId] || [];
+  },
+
+  addAutorole(guildId, roleData) {
+    const db = load();
+    if (!db.autoroles[guildId]) db.autoroles[guildId] = [];
+    db.autoroles[guildId].push(roleData);
+    save(db);
+  },
+
+  removeAutorole(guildId, roleId) {
+    const db = load();
+    if (!db.autoroles[guildId]) return false;
+    const before = db.autoroles[guildId].length;
+    db.autoroles[guildId] = db.autoroles[guildId].filter(r => r.roleId !== roleId);
+    const removed = db.autoroles[guildId].length < before;
+    if (removed) save(db);
+    return removed;
+  },
+
+  clearAutoroles(guildId) {
+    const db = load();
+    db.autoroles[guildId] = [];
+    save(db);
+  },
+
+  // ── REACTION ROLES ────────────────────────────────────────
+
+  /**
+   * Retourne les données d'un message reaction role
+   */
+  getReactionRoleMessage(guildId, messageId) {
+    const db = load();
+    if (!db.reactionRoles[guildId]) return null;
+    return db.reactionRoles[guildId].find(m => m.messageId === messageId) || null;
+  },
+
+  /**
+   * Retourne tous les messages reaction roles d'un serveur
+   */
+  getAllReactionRoleMessages(guildId) {
+    const db = load();
+    return db.reactionRoles[guildId] || [];
+  },
+
+  /**
+   * Crée un nouveau message de reaction roles
+   */
+  addReactionRoleMessage(guildId, data) {
+    const db = load();
+    if (!db.reactionRoles[guildId]) db.reactionRoles[guildId] = [];
+    db.reactionRoles[guildId].push({ ...data, roles: [] });
+    save(db);
+  },
+
+  /**
+   * Ajoute un emoji/rôle à un message existant
+   */
+  addReactionRole(guildId, messageId, { emoji, roleId }) {
+    const db = load();
+    if (!db.reactionRoles[guildId]) return false;
+    const msg = db.reactionRoles[guildId].find(m => m.messageId === messageId);
+    if (!msg) return false;
+    msg.roles.push({ emoji, roleId });
+    save(db);
+    return true;
+  },
+
+  /**
+   * Supprime un message de reaction roles complet
+   */
+  removeReactionRoleMessage(guildId, messageId) {
+    const db = load();
+    if (!db.reactionRoles[guildId]) return false;
+    const before = db.reactionRoles[guildId].length;
+    db.reactionRoles[guildId] = db.reactionRoles[guildId].filter(m => m.messageId !== messageId);
+    const removed = db.reactionRoles[guildId].length < before;
+    if (removed) save(db);
+    return removed;
   }
 };
