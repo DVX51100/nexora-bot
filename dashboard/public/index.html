@@ -19,261 +19,140 @@
       --text: #E2E8F0;
       --muted: #94A3B8;
     }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
-    }
-
-    /* ── Background animé ── */
-    .bg-orbs {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      animation: float 8s ease-in-out infinite;
-    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); animation: float 8s ease-in-out infinite; }
     .orb-1 { width: 500px; height: 500px; background: rgba(124,58,237,0.15); top: -100px; left: -100px; animation-delay: 0s; }
     .orb-2 { width: 400px; height: 400px; background: rgba(168,85,247,0.1); bottom: -50px; right: -50px; animation-delay: 3s; }
     .orb-3 { width: 300px; height: 300px; background: rgba(88,28,135,0.12); top: 50%; left: 50%; animation-delay: 6s; }
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(20px, -20px) scale(1.05); }
-    }
+    @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, -20px) scale(1.05); } }
 
-    /* ── Nav ── */
     nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 3rem;
-      background: rgba(10,10,15,0.8);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 3rem; background: rgba(10,10,15,0.8);
+      backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
     }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.4rem;
-      font-weight: 800;
-    }
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.4rem; font-weight: 800; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
     .logo span { background: linear-gradient(135deg, #A855F7, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .nav-links { display: flex; gap: 2rem; }
     .nav-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; font-size: 0.9rem; }
     .nav-links a:hover { color: white; }
-    .nav-btn {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      color: white;
-      border: none;
-      padding: 0.6rem 1.5rem;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
+    .nav-btn { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; }
     .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(124,58,237,0.4); }
 
-    /* ── Hero ── */
-    .hero {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      text-align: center;
-      padding: 8rem 2rem 4rem;
-    }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(124,58,237,0.3);
-      border-radius: 100px;
-      padding: 0.4rem 1rem;
-      font-size: 0.85rem;
-      color: var(--primary-light);
-      margin-bottom: 1.5rem;
-    }
-    .hero h1 {
-      font-size: clamp(3rem, 7vw, 6rem);
-      font-weight: 900;
-      line-height: 1.05;
-      margin-bottom: 1.5rem;
-      letter-spacing: -2px;
-    }
-    .hero h1 .gradient {
-      background: linear-gradient(135deg, #A855F7, #7C3AED, #EC4899);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero p {
-      font-size: 1.25rem;
-      color: var(--muted);
-      max-width: 600px;
-      line-height: 1.7;
-      margin-bottom: 2.5rem;
-    }
+    .hero { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 8rem 2rem 4rem; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); border-radius: 100px; padding: 0.4rem 1rem; font-size: 0.85rem; color: var(--primary-light); margin-bottom: 1.5rem; }
+    .hero h1 { font-size: clamp(3rem, 7vw, 6rem); font-weight: 900; line-height: 1.05; margin-bottom: 1.5rem; letter-spacing: -2px; }
+    .hero h1 .gradient { background: linear-gradient(135deg, #A855F7, #7C3AED, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.25rem; color: var(--muted); max-width: 600px; line-height: 1.7; margin-bottom: 2.5rem; }
     .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      color: white;
-      border: none;
-      padding: 1rem 2.5rem;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border: none; padding: 1rem 2.5rem; border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s; }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124,58,237,0.5); }
-    .btn-ghost {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 1rem 2.5rem;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 1rem 2.5rem; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
     .btn-ghost:hover { background: rgba(124,58,237,0.1); border-color: var(--primary); }
 
-    /* ── Stats ── */
-    .stats {
-      display: flex;
-      gap: 3rem;
-      justify-content: center;
-      margin-top: 3rem;
-    }
+    .stats { display: flex; gap: 3rem; justify-content: center; margin-top: 3rem; }
     .stat { text-align: center; }
     .stat-value { font-size: 2rem; font-weight: 800; color: white; }
     .stat-label { font-size: 0.8rem; color: var(--muted); }
 
-    /* ── Features ── */
-    .section {
-      position: relative;
-      z-index: 1;
-      padding: 6rem 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .section-label {
-      text-align: center;
-      color: var(--primary-light);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 1rem;
-    }
-    .section-title {
-      text-align: center;
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 800;
-      margin-bottom: 1rem;
-    }
-    .section-sub {
-      text-align: center;
-      color: var(--muted);
-      font-size: 1.1rem;
-      max-width: 500px;
-      margin: 0 auto 4rem;
-    }
+    .section { position: relative; z-index: 1; padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-label { text-align: center; color: var(--primary-light); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
+    .section-title { text-align: center; font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 1rem; }
+    .section-sub { text-align: center; color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 4rem; }
 
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .feature-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 2rem;
-      transition: all 0.3s;
-      cursor: default;
-    }
-    .feature-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(124,58,237,0.5);
-      box-shadow: 0 20px 60px rgba(124,58,237,0.15);
-    }
-    .feature-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2));
-      border: 1px solid rgba(124,58,237,0.4);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; transition: all 0.3s; cursor: default; }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(124,58,237,0.5); box-shadow: 0 20px 60px rgba(124,58,237,0.15); }
+    .feature-icon { width: 50px; height: 50px; background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2)); border: 1px solid rgba(124,58,237,0.4); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
     .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
     .feature-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
 
-    /* ── CTA ── */
-    .cta {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 6rem 2rem;
+    /* ── À VENIR ── */
+    .upcoming-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+    .upcoming-card {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem 2rem;
+      display: flex; align-items: center; gap: 1rem; transition: all 0.3s;
+      position: relative; overflow: hidden;
     }
-    .cta-card {
-      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.1));
-      border: 1px solid rgba(124,58,237,0.4);
-      border-radius: 30px;
-      padding: 5rem 2rem;
-      max-width: 800px;
-      margin: 0 auto;
-    }
+    .upcoming-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(124,58,237,0.05), transparent); opacity: 0; transition: opacity 0.3s; }
+    .upcoming-card:hover::before { opacity: 1; }
+    .upcoming-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124,58,237,0.1); }
+    .upcoming-emoji { font-size: 1.8rem; flex-shrink: 0; }
+    .upcoming-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .upcoming-info p { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+    .soon-badge { margin-left: auto; flex-shrink: 0; background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); color: var(--primary-light); font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+
+    .cta { position: relative; z-index: 1; text-align: center; padding: 6rem 2rem; }
+    .cta-card { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.1)); border: 1px solid rgba(124,58,237,0.4); border-radius: 30px; padding: 5rem 2rem; max-width: 800px; margin: 0 auto; }
     .cta h2 { font-size: 3rem; font-weight: 900; margin-bottom: 1rem; }
     .cta p { color: var(--muted); font-size: 1.1rem; margin-bottom: 2rem; }
 
-    /* ── Footer ── */
-    footer {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 2rem;
-      color: var(--muted);
-      font-size: 0.85rem;
-      border-top: 1px solid var(--border);
-    }
+    footer { position: relative; z-index: 1; text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
     footer span { color: var(--primary-light); }
+
+    /* ── CHATBOT IA ── */
+    #chat-btn {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border: none; cursor: pointer; font-size: 1.5rem;
+      box-shadow: 0 8px 30px rgba(124,58,237,0.5);
+      transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+    }
+    #chat-btn:hover { transform: scale(1.1); box-shadow: 0 12px 40px rgba(124,58,237,0.7); }
+
+    #chat-box {
+      position: fixed; bottom: 6rem; right: 2rem; z-index: 998;
+      width: 360px; max-height: 520px;
+      background: var(--bg2); border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 20px; display: none; flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    #chat-box.open { display: flex; }
+
+    .chat-header {
+      padding: 1rem 1.25rem; background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .chat-header-avatar { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .chat-header-info { flex: 1; }
+    .chat-header-info strong { display: block; font-size: 0.95rem; }
+    .chat-header-info span { font-size: 0.75rem; opacity: 0.8; }
+    .chat-close { background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; opacity: 0.8; }
+    .chat-close:hover { opacity: 1; }
+
+    #chat-messages {
+      flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;
+      min-height: 200px; max-height: 320px;
+    }
+    #chat-messages::-webkit-scrollbar { width: 4px; }
+    #chat-messages::-webkit-scrollbar-track { background: transparent; }
+    #chat-messages::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 2px; }
+
+    .msg { max-width: 80%; padding: 0.6rem 0.9rem; border-radius: 14px; font-size: 0.88rem; line-height: 1.5; word-break: break-word; }
+    .msg.bot { background: var(--bg3); color: var(--text); border-bottom-left-radius: 4px; align-self: flex-start; }
+    .msg.user { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
+    .msg.typing { color: var(--muted); font-style: italic; }
+
+    .chat-input-area { padding: 0.75rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+    #chat-input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.6rem 0.9rem; color: var(--text); font-size: 0.88rem; font-family: inherit;
+      outline: none; resize: none;
+    }
+    #chat-input:focus { border-color: rgba(124,58,237,0.5); }
+    #chat-send {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border: none; border-radius: 10px; padding: 0.6rem 1rem;
+      color: white; cursor: pointer; font-size: 1rem; transition: all 0.2s;
+    }
+    #chat-send:hover { transform: scale(1.05); }
+    #chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   </style>
 </head>
 <body>
@@ -291,39 +170,24 @@
   </div>
   <div class="nav-links">
     <a href="#features">Fonctionnalités</a>
-    <a href="#commands">Commandes</a>
+    <a href="#upcoming">À venir</a>
     <a href="/dashboard">Dashboard</a>
   </div>
   <a href="/auth" class="nav-btn">🚀 Ajouter au serveur</a>
 </nav>
 
 <section class="hero">
-  <div class="hero-badge">
-    <span>✨</span>
-    Le bot Discord nouvelle génération
-  </div>
-  <h1>
-    Propulse ton serveur<br>
-    avec <span class="gradient">Nexora</span>
-  </h1>
+  <div class="hero-badge"><span>✨</span> Le bot Discord nouvelle génération</div>
+  <h1>Propulse ton serveur<br>avec <span class="gradient">Nexora</span></h1>
   <p>Musique, tickets, messages de bienvenue personnalisés et bien plus — tout dans un seul bot, configurable en quelques clics.</p>
   <div class="hero-btns">
     <a href="/auth" class="btn-primary">🚀 Commencer gratuitement</a>
     <a href="/dashboard" class="btn-ghost">📊 Dashboard</a>
   </div>
   <div class="stats">
-    <div class="stat">
-      <div class="stat-value">100%</div>
-      <div class="stat-label">Gratuit</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">5+</div>
-      <div class="stat-label">Modules</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">∞</div>
-      <div class="stat-label">Serveurs</div>
-    </div>
+    <div class="stat"><div class="stat-value">100%</div><div class="stat-label">Gratuit</div></div>
+    <div class="stat"><div class="stat-value">5+</div><div class="stat-label">Modules</div></div>
+    <div class="stat"><div class="stat-value">∞</div><div class="stat-label">Serveurs</div></div>
   </div>
 </section>
 
@@ -331,37 +195,61 @@
   <div class="section-label">Fonctionnalités</div>
   <h2 class="section-title">Tout ce dont tu as besoin</h2>
   <p class="section-sub">Nexora regroupe les meilleures fonctionnalités dans un bot unique et configurable.</p>
-
   <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">👋</div>
-      <h3>Bienvenue Personnalisé</h3>
-      <p>Des embeds de bienvenue uniques et stylés avec des variables dynamiques. Affiche le rang d'arrivée, l'âge du compte, et plus encore.</p>
+    <div class="feature-card"><div class="feature-icon">👋</div><h3>Bienvenue Personnalisé</h3><p>Des embeds de bienvenue uniques et stylés avec des variables dynamiques. Affiche le rang d'arrivée, l'âge du compte, et plus encore.</p></div>
+    <div class="feature-card"><div class="feature-icon">🎭</div><h3>Rôle Automatique</h3><p>Attribue automatiquement un rôle aux nouveaux membres dès leur arrivée sur le serveur.</p></div>
+    <div class="feature-card"><div class="feature-icon">🎫</div><h3>Système de Tickets</h3><p>Un système de tickets complet avec panel, logs, rôles support et gestion des membres dans les tickets.</p></div>
+    <div class="feature-card"><div class="feature-icon">🎵</div><h3>Musique HD</h3><p>Écoute YouTube dans les salons vocaux avec file d'attente, loop, volume, pause et contrôles via boutons.</p></div>
+    <div class="feature-card"><div class="feature-icon">⚙️</div><h3>Dashboard Web</h3><p>Configure tout depuis ce dashboard moderne sans taper une seule commande. Interface intuitive style Mee6.</p></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><h3>Statistiques</h3><p>Visualise les stats de ton serveur : membres, tickets, channels, boosts et bien plus encore.</p></div>
+  </div>
+</section>
+
+<!-- ── À VENIR ── -->
+<section class="section" id="upcoming">
+  <div class="section-label">Roadmap</div>
+  <h2 class="section-title">Ce qui arrive bientôt 🔜</h2>
+  <p class="section-sub">L'équipe Nexora travaille dur pour vous apporter encore plus de fonctionnalités.</p>
+  <div class="upcoming-grid">
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">🛡️</div>
+      <div class="upcoming-info"><h3>Anti-Raid & Anti-Spam</h3><p>Protection avancée contre les raids, spams et attaques de masse.</p></div>
+      <span class="soon-badge">Bientôt</span>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎭</div>
-      <h3>Rôle Automatique</h3>
-      <p>Attribue automatiquement un rôle aux nouveaux membres dès leur arrivée sur le serveur.</p>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">📊</div>
+      <div class="upcoming-info"><h3>Système de Niveaux XP</h3><p>Récompense les membres actifs avec un système de niveaux et rangs.</p></div>
+      <span class="soon-badge">Bientôt</span>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎫</div>
-      <h3>Système de Tickets</h3>
-      <p>Un système de tickets complet avec panel, logs, rôles support et gestion des membres dans les tickets.</p>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">🎁</div>
+      <div class="upcoming-info"><h3>Giveaways</h3><p>Organise des concours et tirages au sort facilement sur ton serveur.</p></div>
+      <span class="soon-badge">Bientôt</span>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎵</div>
-      <h3>Musique HD</h3>
-      <p>Écoute YouTube dans les salons vocaux avec file d'attente, loop, volume, pause et contrôles via boutons.</p>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">✅</div>
+      <div class="upcoming-info"><h3>Vérification Membres</h3><p>Système de vérification pour sécuriser l'accès à ton serveur.</p></div>
+      <span class="soon-badge">Bientôt</span>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">⚙️</div>
-      <h3>Dashboard Web</h3>
-      <p>Configure tout depuis ce dashboard moderne sans taper une seule commande. Interface intuitive style Mee6.</p>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">📝</div>
+      <div class="upcoming-info"><h3>Système de Suggestions</h3><p>Permets à tes membres de soumettre et voter pour des suggestions.</p></div>
+      <span class="soon-badge">Bientôt</span>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <h3>Statistiques</h3>
-      <p>Visualise les stats de ton serveur : membres, tickets, channels, boosts et bien plus encore.</p>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">🤖</div>
+      <div class="upcoming-info"><h3>Commandes Personnalisées</h3><p>Crée tes propres commandes avec des réponses automatiques.</p></div>
+      <span class="soon-badge">Bientôt</span>
+    </div>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">🌍</div>
+      <div class="upcoming-info"><h3>Multi-Langue</h3><p>Nexora disponible en plusieurs langues pour tous les serveurs.</p></div>
+      <span class="soon-badge">Bientôt</span>
+    </div>
+    <div class="upcoming-card">
+      <div class="upcoming-emoji">🎵</div>
+      <div class="upcoming-info"><h3>Playlists Sauvegardées</h3><p>Sauvegarde tes playlists préférées et rejoue-les en un clic.</p></div>
+      <span class="soon-badge">Bientôt</span>
     </div>
   </div>
 </section>
@@ -374,9 +262,94 @@
   </div>
 </section>
 
-<footer>
-  Fait avec ❤️ par <span>Nexora</span> • 2024 — Tous droits réservés
-</footer>
+<footer>Fait avec ❤️ par <span>Nexora</span> • 2025 — Tous droits réservés</footer>
+
+<!-- ── CHATBOT IA ── -->
+<button id="chat-btn" onclick="toggleChat()" title="Parler à l'IA Nexora">🤖</button>
+
+<div id="chat-box">
+  <div class="chat-header">
+    <div class="chat-header-avatar">✨</div>
+    <div class="chat-header-info">
+      <strong>Nexora IA</strong>
+      <span>Propulsé par Gemini • En ligne</span>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-messages">
+    <div class="msg bot">👋 Salut ! Je suis l'IA de Nexora. Pose-moi n'importe quelle question sur le bot, Discord, ou autre chose !</div>
+  </div>
+  <div class="chat-input-area">
+    <textarea id="chat-input" rows="1" placeholder="Écris un message..." onkeydown="handleKey(event)"></textarea>
+    <button id="chat-send" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  const GEMINI_KEY = 'AIzaSyCK3r7mryG_gZyzsszJ-1UtzcDVeTBnqsg';
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+  const history = [];
+
+  function toggleChat() {
+    const box = document.getElementById('chat-box');
+    box.classList.toggle('open');
+    if (box.classList.contains('open')) {
+      document.getElementById('chat-input').focus();
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function addMsg(text, role) {
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.textContent = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const btn = document.getElementById('chat-send');
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    btn.disabled = true;
+    addMsg(text, 'user');
+    history.push({ role: 'user', parts: [{ text }] });
+
+    const typing = addMsg('...en train de répondre', 'bot typing');
+
+    try {
+      const res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: history,
+          systemInstruction: {
+            parts: [{ text: "Tu es l'assistant IA de Nexora, un bot Discord. Tu es utile, sympathique et tu réponds en français. Tu peux aider sur Discord, Nexora, et tout sujet général." }]
+          }
+        })
+      });
+      const data = await res.json();
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Désolé, je n'ai pas pu répondre.";
+      typing.className = 'msg bot';
+      typing.textContent = reply;
+      history.push({ role: 'model', parts: [{ text: reply }] });
+    } catch(e) {
+      typing.className = 'msg bot';
+      typing.textContent = "❌ Erreur de connexion à l'IA.";
+    }
+
+    btn.disabled = false;
+    document.getElementById('chat-messages').scrollTop = 9999;
+  }
+</script>
 
 </body>
 </html>
