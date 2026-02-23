@@ -65,7 +65,8 @@ module.exports = {
           permissionOverwrites: overwrites
         });
 
-        db.createTicket(ticketChannel.id, guild.id, user.id);
+        // ✅ CORRECTION: bon ordre des arguments (guildId, channelId, userId)
+        db.createTicket(guild.id, ticketChannel.id, user.id);
 
         // Embed du ticket
         const embed = new EmbedBuilder()
