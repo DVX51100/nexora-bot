@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexora — Configuration Serveur</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #7C3AED; --primary-light: #A855F7;
+      --bg: #0A0A0F; --bg2: #111118; --bg3: #1A1A25;
+      --border: rgba(124,58,237,0.2); --text: #E2E8F0; --muted: #94A3B8;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; background: rgba(10,10,15,0.95); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; }
+    .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .logo span { background: linear-gradient(135deg, #A855F7, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.85rem; }
+
+    .layout { display: flex; flex: 1; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px; min-height: calc(100vh - 61px);
+      background: var(--bg2); border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 0.25rem;
+    }
+    .sidebar-label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 0.75rem; border-radius: 10px;
+      color: var(--muted); font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; border: none; background: none; text-align: left; width: 100%;
+    }
+    .sidebar-item:hover { background: rgba(124,58,237,0.1); color: white; }
+    .sidebar-item.active { background: rgba(124,58,237,0.2); color: white; border: 1px solid rgba(124,58,237,0.3); }
+    .sidebar-item .icon { font-size: 1.1rem; }
+
+    /* Main content */
+    .content { flex: 1; padding: 2rem; max-width: 900px; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header { margin-bottom: 2rem; }
+    .page-header h2 { font-size: 1.5rem; font-weight: 800; }
+    .page-header p { color: var(--muted); margin-top: 0.25rem; }
+
+    /* Cards */
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .card-title { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* Toggle */
+    .toggle { position: relative; width: 48px; height: 26px; }
+    .toggle input { display: none; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--bg3); border-radius: 100px; cursor: pointer; transition: 0.3s; border: 1px solid var(--border); }
+    .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; background: var(--muted); border-radius: 50%; top: 3px; left: 3px; transition: 0.3s; }
+    .toggle input:checked + .toggle-slider { background: var(--primary); border-color: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(22px); background: white; }
+
+    /* Form */
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 0.5rem; }
+    select, input[type="text"], textarea {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); padding: 0.7rem 1rem; border-radius: 10px;
+      font-family: inherit; font-size: 0.9rem; transition: border-color 0.2s;
+    }
+    select:focus, input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 100px; }
+    select option { background: var(--bg2); }
+
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; }
+    .variables { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .var-badge { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: var(--primary-light); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; font-family: monospace; }
+    .var-badge:hover { background: rgba(124,58,237,0.3); }
+
+    /* Boutons */
+    .save-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white; border: none; padding: 0.8rem 2rem;
+      border-radius: 10px; font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .save-btn:hover { box-shadow: 0 6px 20px rgba(124,58,237,0.4); transform: translateY(-1px); }
+    .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--bg2); border: 1px solid rgba(0,200,100,0.4);
+      color: #00C864; padding: 1rem 1.5rem; border-radius: 12px;
+      font-weight: 600; opacity: 0; transform: translateY(10px);
+      transition: all 0.3s; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { border-color: rgba(255,68,68,0.4); color: #FF4444; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: white; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 0.5rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">✨</div><span>Nexora</span></a>
+  <a href="/dashboard" class="back-btn">← Mes serveurs</a>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-label">Général</div>
+    <button class="sidebar-item active" onclick="showPage('stats')"><span class="icon">📊</span> Statistiques</button>
+
+    <div class="sidebar-label">Modules</div>
+    <button class="sidebar-item" onclick="showPage('welcome')"><span class="icon">👋</span> Bienvenue</button>
+    <button class="sidebar-item" onclick="showPage('tickets')"><span class="icon">🎫</span> Tickets</button>
+    <button class="sidebar-item" onclick="showPage('logs')"><span class="icon">📋</span> Logs</button>
+    <button class="sidebar-item" onclick="showPage('music')"><span class="icon">🎵</span> Musique</button>
+  </aside>
+
+  <main class="content">
+
+    <!-- Stats -->
+    <div class="page active" id="page-stats">
+      <div class="page-header">
+        <h2>📊 Statistiques</h2>
+        <p>Vue d'ensemble de ton serveur</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-members">—</div><div class="stat-label">Membres</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-channels">—</div><div class="stat-label">Salons</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-roles">—</div><div class="stat-label">Rôles</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-tickets-open">—</div><div class="stat-label">Tickets ouverts</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-tickets-total">—</div><div class="stat-label">Total tickets</div></div>
+      </div>
+    </div>
+
+    <!-- Bienvenue -->
+    <div class="page" id="page-welcome">
+      <div class="page-header">
+        <h2>👋 Message de Bienvenue</h2>
+        <p>Configure le message envoyé aux nouveaux membres</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">👋 Activation</span>
+          <label class="toggle"><input type="checkbox" id="welcome_enabled"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="form-group">
+          <label>📢 Salon de bienvenue</label>
+          <select id="welcome_channel"><option value="">— Sélectionner —</option></select>
+        </div>
+        <div class="form-group">
+          <label>🎭 Rôle automatique à l'arrivée</label>
+          <select id="welcome_role"><option value="">— Aucun rôle —</option></select>
+        </div>
+        <div class="form-group">
+          <label>✉️ Message personnalisé</label>
+          <textarea id="welcome_message" placeholder="Bienvenue {user} sur **{server}** !"></textarea>
+          <div class="hint">Variables disponibles (clique pour insérer) :</div>
+          <div class="variables">
+            <span class="var-badge" onclick="insertVar('{user}')">&#123;user&#125;</span>
+            <span class="var-badge" onclick="insertVar('{username}')">&#123;username&#125;</span>
+            <span class="var-badge" onclick="insertVar('{server}')">&#123;server&#125;</span>
+            <span class="var-badge" onclick="insertVar('{memberCount}')">&#123;memberCount&#125;</span>
+            <span class="var-badge" onclick="insertVar('{mention}')">&#123;mention&#125;</span>
+          </div>
+        </div>
+        <button class="save-btn" onclick="save('welcome')">💾 Sauvegarder</button>
+      </div>
+    </div>
+
+    <!-- Tickets -->
+    <div class="page" id="page-tickets">
+      <div class="page-header">
+        <h2>🎫 Système de Tickets</h2>
+        <p>Configure le support par tickets</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🎫 Activation</span>
+          <label class="toggle"><input type="checkbox" id="ticket_enabled"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="form-group">
+          <label>🛡️ Rôle support</label>
+          <select id="ticket_support_role"><option value="">— Aucun rôle —</option></select>
+        </div>
+        <div class="form-group">
+          <label>📋 Canal de logs des tickets</label>
+          <select id="ticket_log_channel"><option value="">— Aucun canal —</option></select>
+        </div>
+        <div class="form-group">
+          <label>✉️ Message du panel</label>
+          <textarea id="ticket_message" placeholder="Clique sur le bouton ci-dessous pour ouvrir un ticket."></textarea>
+        </div>
+        <button class="save-btn" onclick="save('tickets')">💾 Sauvegarder</button>
+      </div>
+    </div>
+
+    <!-- Logs -->
+    <div class="page" id="page-logs">
+      <div class="page-header">
+        <h2>📋 Système de Logs</h2>
+        <p>Configure où Nexora envoie ses logs</p>
+      </div>
+      <div class="card">
+        <div class="form-group">
+          <label>📢 Canal de logs général</label>
+          <select id="log_channel"><option value="">— Aucun canal —</option></select>
+        </div>
+        <button class="save-btn" onclick="save('logs')">💾 Sauvegarder</button>
+      </div>
+    </div>
+
+    <!-- Musique -->
+    <div class="page" id="page-music">
+      <div class="page-header">
+        <h2>🎵 Musique</h2>
+        <p>Informations sur le module musique</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🎵 Statut</span>
+          <span style="color:#00C864;font-size:0.85rem;font-weight:600">✅ Toujours actif</span>
+        </div>
+        <p style="color:var(--muted);line-height:1.7">Le module musique est toujours actif et ne nécessite pas de configuration.<br><br>
+        Utilise <strong>/music play</strong> dans un salon vocal pour commencer ! 🎵</p>
+        <br>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem;">
+          <div style="font-weight:700;margin-bottom:0.5rem">Commandes disponibles :</div>
+          <div style="color:var(--muted);font-size:0.9rem;line-height:2">
+            <code>/music play</code> — Jouer une musique<br>
+            <code>/music skip</code> — Passer la musique<br>
+            <code>/music queue</code> — Voir la file<br>
+            <code>/music stop</code> — Arrêter<br>
+            <code>/music loop</code> — Répétition<br>
+            <code>/music volume</code> — Volume
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast">✅ Sauvegardé !</div>
+
+<script>
+const guildId = window.location.pathname.split('/').pop();
+let config = {};
+let channels = [];
+let roles = [];
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function insertVar(v) {
+  const ta = document.getElementById('welcome_message');
+  const pos = ta.selectionStart;
+  ta.value = ta.value.slice(0, pos) + v + ta.value.slice(ta.selectionEnd);
+  ta.focus();
+}
+
+function populateSelect(id, options, currentVal, allowEmpty = true) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const firstOpt = el.options[0];
+  el.innerHTML = '';
+  if (allowEmpty) el.appendChild(firstOpt);
+  options.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.id;
+    opt.textContent = `#${o.name}` || o.name;
+    if (o.id === currentVal) opt.selected = true;
+    el.appendChild(opt);
+  });
+}
+
+function populateRoleSelect(id, roles, currentVal) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const firstOpt = el.options[0];
+  el.innerHTML = '';
+  el.appendChild(firstOpt);
+  roles.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id;
+    opt.textContent = `@${r.name}`;
+    if (r.id === currentVal) opt.selected = true;
+    el.appendChild(opt);
+  });
+}
+
+async function load() {
+  const res = await fetch(`/api/guild/${guildId}/config`);
+  if (!res.ok) { window.location.href = '/dashboard'; return; }
+  const data = await res.json();
+  config = data.config;
+  channels = data.channels;
+  roles = data.roles;
+
+  // Titre
+  document.title = `Nexora — ${data.guild.name}`;
+
+  // Remplir les formulaires
+  document.getElementById('welcome_enabled').checked = !!config.welcome_enabled;
+  document.getElementById('welcome_message').value = config.welcome_message || '';
+  document.getElementById('ticket_enabled').checked = !!config.ticket_enabled;
+  document.getElementById('ticket_message').value = config.ticket_message || '';
+
+  populateSelect('welcome_channel', channels, config.welcome_channel);
+  populateSelect('ticket_log_channel', channels, config.ticket_log_channel);
+  populateSelect('log_channel', channels, config.log_channel);
+  populateRoleSelect('welcome_role', roles, config.welcome_role);
+  populateRoleSelect('ticket_support_role', roles, config.ticket_support_role);
+
+  // Stats
+  loadStats();
+}
+
+async function loadStats() {
+  const res = await fetch(`/api/guild/${guildId}/stats`);
+  if (!res.ok) return;
+  const s = await res.json();
+  document.getElementById('stat-members').textContent = s.members;
+  document.getElementById('stat-channels').textContent = s.channels;
+  document.getElementById('stat-roles').textContent = s.roles;
+  document.getElementById('stat-tickets-open').textContent = s.tickets.open || 0;
+  document.getElementById('stat-tickets-total').textContent = s.tickets.total || 0;
+}
+
+async function save(section) {
+  const updates = {};
+
+  if (section === 'welcome') {
+    updates.welcome_enabled = document.getElementById('welcome_enabled').checked ? 1 : 0;
+    updates.welcome_channel = document.getElementById('welcome_channel').value || null;
+    updates.welcome_role = document.getElementById('welcome_role').value || null;
+    updates.welcome_message = document.getElementById('welcome_message').value;
+  } else if (section === 'tickets') {
+    updates.ticket_enabled = document.getElementById('ticket_enabled').checked ? 1 : 0;
+    updates.ticket_support_role = document.getElementById('ticket_support_role').value || null;
+    updates.ticket_log_channel = document.getElementById('ticket_log_channel').value || null;
+    updates.ticket_message = document.getElementById('ticket_message').value;
+  } else if (section === 'logs') {
+    updates.log_channel = document.getElementById('log_channel').value || null;
+  }
+
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sauvegarde...';
+
+  const res = await fetch(`/api/guild/${guildId}/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates)
+  });
+
+  btn.disabled = false;
+  btn.innerHTML = '💾 Sauvegarder';
+
+  const toast = document.getElementById('toast');
+  if (res.ok) {
+    toast.textContent = '✅ Configuration sauvegardée !';
+    toast.className = 'toast show';
+  } else {
+    toast.textContent = '❌ Erreur lors de la sauvegarde.';
+    toast.className = 'toast error show';
+  }
+
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+load();
+</script>
+</body>
+</html>
