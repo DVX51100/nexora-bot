@@ -1,9 +1,27 @@
 const { EmbedBuilder } = require('discord.js');
+const https = require('https');
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_KEY}`;
-
-// Historique de conversation par ticket
 const ticketHistory = new Map();
+
+function geminiRequest(key, body) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const options = {
+      hostname: 'generativelanguage.googleapis.com',
+      path: `/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+    };
+    const req = https.request(options, (res) => {
+      let responseData = '';
+      res.on('data', (chunk) => { responseData += chunk; });
+      res.on('end', () => { try { resolve(JSON.parse(responseData)); } catch(e) { reject(e); } });
+    });
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
+}
 
 module.exports = {
   name: 'messageCreate',
@@ -12,55 +30,46 @@ module.exports = {
   async execute(message, client) {
     if (message.author.bot) return;
 
-    // Récupère le buttonHandler pour accéder à ticketAI
     const buttonHandler = require('./buttonHandler');
     const ticketAI = buttonHandler.ticketAI;
 
     const aiState = ticketAI.get(message.channelId);
     if (!aiState || !aiState.active) return;
 
-    // Vérifie que c'est bien un ticket
     const db = require('../database/db');
     const ticket = db.getTicket(message.channelId);
     if (!ticket) return;
 
-    // Initialise l'historique si besoin
-    if (!ticketHistory.has(message.channelId)) {
-      ticketHistory.set(message.channelId, []);
-    }
+    if (!ticketHistory.has(message.channelId)) ticketHistory.set(message.channelId, []);
     const history = ticketHistory.get(message.channelId);
-
-    // Ajoute le message à l'historique
     history.push({ role: 'user', parts: [{ text: message.content }] });
 
-    // Indicateur de frappe
     await message.channel.sendTyping();
 
     try {
-      const response = await fetch(GEMINI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: history,
-          systemInstruction: {
-            parts: [{ text: `Tu es l'assistant IA du serveur Discord "${message.guild.name}". Tu aides les membres avec leurs questions de support. Tu es utile, sympathique et professionnel. Tu réponds en français. Si tu ne sais pas quelque chose, dis-le honnêtement et suggère de patienter pour qu'un membre du staff humain prenne en charge.` }]
-          },
-          generationConfig: { maxOutputTokens: 500 }
-        })
-      });
-
-      const data = await response.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (!reply) {
-        await message.reply('❌ L\'IA n\'a pas pu répondre. Un staff va prendre en charge ton ticket.');
+      const geminiKey = process.env.GEMINI_KEY;
+      if (!geminiKey) {
+        await message.reply('❌ Clé Gemini non configurée. Contacte un staff.');
         return;
       }
 
-      // Ajoute la réponse à l'historique
-      history.push({ role: 'model', parts: [{ text: reply }] });
+      const data = await geminiRequest(geminiKey, {
+        contents: history,
+        systemInstruction: {
+          parts: [{ text: `Tu es l'assistant IA du serveur Discord "${message.guild.name}". Tu aides les membres avec leurs questions de support. Tu es utile, sympathique et professionnel. Tu réponds en français.` }]
+        },
+        generationConfig: { maxOutputTokens: 500 }
+      });
 
-      // Limite l'historique à 20 messages
+      console.log('[Nexora IA] Réponse:', JSON.stringify(data).substring(0, 300));
+
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!reply) {
+        await message.reply('❌ L\'IA n\'a pas pu répondre. Un staff va prendre en charge.');
+        return;
+      }
+
+      history.push({ role: 'model', parts: [{ text: reply }] });
       if (history.length > 20) history.splice(0, 2);
 
       const embed = new EmbedBuilder()
@@ -71,7 +80,7 @@ module.exports = {
       await message.reply({ embeds: [embed] });
 
     } catch (err) {
-      console.error('Erreur IA ticket:', err);
+      console.error('[Nexora IA] Erreur:', err);
       await message.reply('❌ Erreur de connexion à l\'IA. Un staff va prendre en charge.');
     }
   }
