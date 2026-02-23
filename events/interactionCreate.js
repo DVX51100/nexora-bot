@@ -13,7 +13,6 @@ module.exports = {
   async execute(interaction, client) {
     if (!interaction.isModalSubmit()) return;
 
-    // ── TICKET: Modal soumis ─────────────────────────────
     if (interaction.customId === 'ticket_modal') {
       const subject = interaction.fields.getTextInputValue('ticket_subject');
       const description = interaction.fields.getTextInputValue('ticket_description');
@@ -21,7 +20,12 @@ module.exports = {
       const user = interaction.user;
       const config = db.getConfig(guild.id);
 
-      await interaction.deferReply({ ephemeral: true });
+      // Répondre immédiatement pour éviter le timeout
+      try {
+        await interaction.reply({ content: '⏳ Création de ton ticket...', flags: 64 });
+      } catch {
+        return;
+      }
 
       try {
         // Récupère ou crée la catégorie
@@ -31,31 +35,34 @@ module.exports = {
         }
         if (!category) {
           const existing = guild.channels.cache.find(c =>
-            c.type === ChannelType.GuildCategory && c.name.toLowerCase() === '🎫 tickets'
+            c.type === ChannelType.GuildCategory && c.name.toLowerCase().includes('ticket')
           );
           if (existing) {
             category = existing;
             db.setConfigs(guild.id, { ticket_category: existing.id });
           } else {
             category = await guild.channels.create({
-              name: '🎫 tickets',
+              name: '🎫 Tickets',
               type: ChannelType.GuildCategory
             });
             db.setConfigs(guild.id, { ticket_category: category.id });
           }
         }
 
-        // Numéro du ticket
-        const ticketNumber = (db.getStats(guild.id).tickets?.total || 0) + 1;
-        const channelName = `ticket-${String(ticketNumber).padStart(4, '0')}-${user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+        const stats = db.getStats(guild.id);
+        const ticketNumber = (stats.tickets?.total || 0) + 1;
+        const channelName = `ticket-${String(ticketNumber).padStart(4, '0')}-${user.username.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 10)}`;
 
-        // Permissions
         const overwrites = [
           { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-          { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] }
+          { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] },
+          { id: client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] }
         ];
         if (config.ticket_support_role) {
-          overwrites.push({ id: config.ticket_support_role, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] });
+          overwrites.push({
+            id: config.ticket_support_role,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
+          });
         }
 
         const ticketChannel = await guild.channels.create({
@@ -65,10 +72,8 @@ module.exports = {
           permissionOverwrites: overwrites
         });
 
-        // ✅ CORRECTION: bon ordre des arguments (guildId, channelId, userId)
         db.createTicket(guild.id, ticketChannel.id, user.id);
 
-        // Embed du ticket
         const embed = new EmbedBuilder()
           .setTitle(`🎫 Ticket #${String(ticketNumber).padStart(4, '0')}`)
           .setDescription(`Bonjour ${user} ! Notre équipe va vous répondre rapidement.\n\n**Sujet :** ${subject}\n\n**Description :**\n${description}`)
@@ -81,27 +86,18 @@ module.exports = {
           .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId('ticket_ai_start')
-            .setLabel('🤖 Parler à l\'IA')
-            .setStyle(ButtonStyle.Primary),
-          new ButtonBuilder()
-            .setCustomId('ticket_claim')
-            .setLabel('👤 Prendre en charge')
-            .setStyle(ButtonStyle.Success),
-          new ButtonBuilder()
-            .setCustomId('ticket_close_confirm')
-            .setLabel('🔒 Fermer le ticket')
-            .setStyle(ButtonStyle.Danger)
+          new ButtonBuilder().setCustomId('ticket_ai_start').setLabel('🤖 Parler à l\'IA').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId('ticket_claim').setLabel('👤 Prendre en charge').setStyle(ButtonStyle.Success),
+          new ButtonBuilder().setCustomId('ticket_close_confirm').setLabel('🔒 Fermer le ticket').setStyle(ButtonStyle.Danger)
         );
 
-        await ticketChannel.send({ content: `${user} <@&${config.ticket_support_role || ''}>`, embeds: [embed], components: [row] });
-
+        const mention = config.ticket_support_role ? `${user} <@&${config.ticket_support_role}>` : `${user}`;
+        await ticketChannel.send({ content: mention, embeds: [embed], components: [row] });
         await interaction.editReply({ content: `✅ Ton ticket a été créé : ${ticketChannel}` });
 
       } catch (err) {
         console.error('Erreur création ticket:', err);
-        await interaction.editReply({ content: '❌ Erreur lors de la création du ticket.' });
+        try { await interaction.editReply({ content: '❌ Erreur lors de la création du ticket.' }); } catch {}
       }
     }
   }
