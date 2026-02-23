@@ -3,20 +3,35 @@ const https = require('https');
 
 const ticketHistory = new Map();
 
-function geminiRequest(key, body) {
+function groqRequest(key, messages) {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify(body);
+    const data = JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7
+    });
+
     const options = {
-      hostname: 'generativelanguage.googleapis.com',
-      path: `/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+        'Content-Length': Buffer.byteLength(data)
+      }
     };
+
     const req = https.request(options, (res) => {
       let responseData = '';
       res.on('data', (chunk) => { responseData += chunk; });
-      res.on('end', () => { try { resolve(JSON.parse(responseData)); } catch(e) { reject(e); } });
+      res.on('end', () => {
+        try { resolve(JSON.parse(responseData)); }
+        catch (e) { reject(e); }
+      });
     });
+
     req.on('error', reject);
     req.write(data);
     req.end();
@@ -40,37 +55,38 @@ module.exports = {
     const ticket = db.getTicket(message.channelId);
     if (!ticket) return;
 
-    if (!ticketHistory.has(message.channelId)) ticketHistory.set(message.channelId, []);
+    if (!ticketHistory.has(message.channelId)) {
+      ticketHistory.set(message.channelId, [{
+        role: 'system',
+        content: `Tu es l'assistant IA du serveur Discord "${message.guild.name}". Tu aides les membres avec leurs questions de support. Tu es utile, sympathique et professionnel. Tu réponds toujours en français. Si tu ne sais pas quelque chose, dis-le honnêtement et suggère de patienter pour qu'un membre du staff prenne en charge.`
+      }]);
+    }
+
     const history = ticketHistory.get(message.channelId);
-    history.push({ role: 'user', parts: [{ text: message.content }] });
+    history.push({ role: 'user', content: message.content });
 
     await message.channel.sendTyping();
 
     try {
-      const geminiKey = process.env.GEMINI_KEY;
-      if (!geminiKey) {
-        await message.reply('❌ Clé Gemini non configurée. Contacte un staff.');
+      const groqKey = process.env.GROQ_KEY;
+      if (!groqKey) {
+        await message.reply('❌ Clé IA non configurée. Contacte un staff.');
         return;
       }
 
-      const data = await geminiRequest(geminiKey, {
-        contents: history,
-        systemInstruction: {
-          parts: [{ text: `Tu es l'assistant IA du serveur Discord "${message.guild.name}". Tu aides les membres avec leurs questions de support. Tu es utile, sympathique et professionnel. Tu réponds en français.` }]
-        },
-        generationConfig: { maxOutputTokens: 500 }
-      });
+      const data = await groqRequest(groqKey, history);
+      console.log('[Nexora IA] Réponse Groq:', JSON.stringify(data).substring(0, 200));
 
-      console.log('[Nexora IA] Réponse:', JSON.stringify(data).substring(0, 300));
+      const reply = data.choices?.[0]?.message?.content;
 
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!reply) {
+        console.error('[Nexora IA] Pas de réponse:', JSON.stringify(data));
         await message.reply('❌ L\'IA n\'a pas pu répondre. Un staff va prendre en charge.');
         return;
       }
 
-      history.push({ role: 'model', parts: [{ text: reply }] });
-      if (history.length > 20) history.splice(0, 2);
+      history.push({ role: 'assistant', content: reply });
+      if (history.length > 21) history.splice(1, 2);
 
       const embed = new EmbedBuilder()
         .setDescription(reply)
