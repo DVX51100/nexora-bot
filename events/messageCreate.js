@@ -40,12 +40,15 @@ module.exports = {
     const ticket = db.getTicket(message.channelId);
     if (!ticket) return;
 
-    // ✅ Vérification premium
-    if (!db.isPremium(ticket.user_id)) {
+    // ✅ Vérification premium sur le SERVEUR (owner du serveur)
+    const guild = message.guild;
+    const guildOwnerId = guild.ownerId;
+    
+    if (!db.isPremium(guildOwnerId)) {
       ticketAI.set(message.channelId, { active: false });
       const embed = new EmbedBuilder()
         .setTitle('👑 Fonctionnalité Premium')
-        .setDescription(`L'IA dans les tickets est réservée aux membres **Premium**.\n\n💳 Abonne-toi pour **2€/mois** sur [nexora-bot-dna9.onrender.com](https://nexora-bot-dna9.onrender.com/#premium) pour débloquer cette fonctionnalité !\n\nUn staff va prendre en charge ton ticket.`)
+        .setDescription(`L'IA dans les tickets est réservée aux serveurs **Premium**.\n\nLe propriétaire du serveur peut s'abonner pour **2€/mois** sur [nexora-bot-dna9.onrender.com](https://nexora-bot-dna9.onrender.com/#premium) pour débloquer cette fonctionnalité pour **tous les membres** !\n\nUn staff va prendre en charge ton ticket.`)
         .setColor(0x7C3AED)
         .setFooter({ text: 'Nexora Premium • 2€/mois' });
       await message.reply({ embeds: [embed] });
