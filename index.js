@@ -11,9 +11,8 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildMessageReactions, // ✅ Requis pour les reaction roles
+    GatewayIntentBits.GuildMessageReactions,
   ],
-  // ✅ Les partials sont OBLIGATOIRES pour capter les réactions sur d'anciens messages
   partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
@@ -38,6 +37,8 @@ const eventFiles = fs.readdirSync(eventsPath).filter(f => f.endsWith('.js'));
 
 for (const file of eventFiles) {
   const event = require(path.join(eventsPath, file));
+  // On skip liveTracker car ce n'est pas un event Discord classique
+  if (!event.name || event.name === 'liveTracker') continue;
   if (event.once) {
     client.once(event.name, (...args) => event.execute(...args, client));
   } else {
@@ -110,6 +111,11 @@ client.once('ready', async () => {
   });
   await deployCommands();
   require('./dashboard/server')(client);
+
+  // 🎥 Démarrage du Live Tracker
+  const liveTracker = require('./events/liveTracker');
+  const db = require('./database/db');
+  liveTracker.start(client, db);
 });
 
 client.login(process.env.DISCORD_TOKEN);

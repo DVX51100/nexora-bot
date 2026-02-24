@@ -4,7 +4,9 @@ const path = require('path');
 const DB_PATH = path.join(__dirname, 'nexora-data.json');
 const DEFAULT_DB = {
   guilds: {}, tickets: [], autoroles: {}, reactionRoles: {},
-  premium: {}, xp: {}, customCommands: {}
+  premium: {}, xp: {}, customCommands: {},
+  // 🎥 Livestream
+  livestreamConfig: {}, livestreamStreamers: []
 };
 
 function load() {
@@ -19,6 +21,9 @@ function load() {
     if (!data.premium) data.premium = {};
     if (!data.xp) data.xp = {};
     if (!data.customCommands) data.customCommands = {};
+    // 🎥 Livestream — migration douce si le fichier existait avant
+    if (!data.livestreamConfig) data.livestreamConfig = {};
+    if (!data.livestreamStreamers) data.livestreamStreamers = [];
     return data;
   } catch { return JSON.parse(JSON.stringify(DEFAULT_DB)); }
 }
@@ -33,7 +38,6 @@ function defaultConfig(guildId) {
     ticket_support_role: null, ticket_log_channel: null,
     ticket_message: 'Clique sur le bouton ci-dessous pour ouvrir un ticket.',
     log_channel: null,
-    // Nouvelles clés
     suggest_channel: null,
     verify_role: null, verify_channel: null, verify_enabled: false,
     antispam_enabled: false, antispam_max_messages: 5, antispam_action: 'mute',
@@ -209,7 +213,6 @@ module.exports = {
   addCustomCommand(guildId, { trigger, response, exact }) {
     const db = load();
     if (!db.customCommands[guildId]) db.customCommands[guildId] = [];
-    // Remplace si le trigger existe déjà
     const existing = db.customCommands[guildId].findIndex(c => c.trigger === trigger);
     if (existing >= 0) {
       db.customCommands[guildId][existing] = { trigger, response, exact: exact || false };
@@ -226,5 +229,44 @@ module.exports = {
     const removed = db.customCommands[guildId].length < before;
     if (removed) save(db);
     return removed;
+  },
+
+  // ── 🎥 LIVESTREAM ─────────────────────────────────────
+  setLivestreamChannel(guildId, channelId) {
+    const db = load();
+    if (!db.livestreamConfig[guildId]) db.livestreamConfig[guildId] = {};
+    db.livestreamConfig[guildId].channel_id = channelId;
+    save(db);
+  },
+  setLivestreamRole(guildId, roleId) {
+    const db = load();
+    if (!db.livestreamConfig[guildId]) db.livestreamConfig[guildId] = {};
+    db.livestreamConfig[guildId].role_id = roleId;
+    save(db);
+  },
+  getLivestreamConfig(guildId) {
+    return load().livestreamConfig[guildId] || null;
+  },
+  addStreamer(guildId, platform, username, displayName) {
+    const db = load();
+    // Retire l'ancien si existe déjà (pour mise à jour du display_name)
+    db.livestreamStreamers = db.livestreamStreamers.filter(
+      s => !(s.guild_id === guildId && s.platform === platform && s.username === username)
+    );
+    db.livestreamStreamers.push({ guild_id: guildId, platform, username, display_name: displayName });
+    save(db);
+  },
+  removeStreamer(guildId, platform, username) {
+    const db = load();
+    db.livestreamStreamers = db.livestreamStreamers.filter(
+      s => !(s.guild_id === guildId && s.platform === platform && s.username === username)
+    );
+    save(db);
+  },
+  getStreamers(guildId) {
+    return load().livestreamStreamers.filter(s => s.guild_id === guildId);
+  },
+  getAllStreamers() {
+    return load().livestreamStreamers;
   }
 };
