@@ -186,6 +186,9 @@ module.exports = function(client) {
   app.get('/dashboard/:guildId', isAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'guild.html')));
   app.get('/admin', isOwner, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
+  // ✅ CORRECTION : écoute sur 0.0.0.0 pour que Render détecte le port
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => { console.log(`\x1b[35m🌐 Dashboard Nexora: http://localhost:${PORT}\x1b[0m`); });
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\x1b[35m🌐 Dashboard Nexora: http://0.0.0.0:${PORT}\x1b[0m`);
+  });
 };
