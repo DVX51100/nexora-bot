@@ -13,9 +13,9 @@ function groqRequest(key, messages) {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}`, 'Content-Length': Buffer.byteLength(data) }
     };
     const req = https.request(options, (res) => {
-      let responseData = '';
-      res.on('data', (chunk) => { responseData += chunk; });
-      res.on('end', () => { try { resolve(JSON.parse(responseData)); } catch(e) { reject(e); } });
+      let body = '';
+      res.on('data', c => body += c);
+      res.on('end', () => { try { resolve(JSON.parse(body)); } catch(e) { reject(e); } });
     });
     req.on('error', reject);
     req.write(data);
@@ -40,21 +40,6 @@ module.exports = {
     const ticket = db.getTicket(message.channelId);
     if (!ticket) return;
 
-    // ✅ Vérification premium sur le SERVEUR (owner du serveur)
-    const guild = message.guild;
-    const guildOwnerId = guild.ownerId;
-    
-    if (!db.isPremium(guildOwnerId)) {
-      ticketAI.set(message.channelId, { active: false });
-      const embed = new EmbedBuilder()
-        .setTitle('👑 Fonctionnalité Premium')
-        .setDescription(`L'IA dans les tickets est réservée aux serveurs **Premium**.\n\nLe propriétaire du serveur peut s'abonner pour **2€/mois** sur [nexora-bot-dna9.onrender.com](https://nexora-bot-dna9.onrender.com/#premium) pour débloquer cette fonctionnalité pour **tous les membres** !\n\nUn staff va prendre en charge ton ticket.`)
-        .setColor(0x7C3AED)
-        .setFooter({ text: 'Nexora Premium • 2€/mois' });
-      await message.reply({ embeds: [embed] });
-      return;
-    }
-
     if (!ticketHistory.has(message.channelId)) {
       ticketHistory.set(message.channelId, [{
         role: 'system',
@@ -64,7 +49,6 @@ module.exports = {
 
     const history = ticketHistory.get(message.channelId);
     history.push({ role: 'user', content: message.content });
-
     await message.channel.sendTyping();
 
     try {
@@ -73,18 +57,17 @@ module.exports = {
 
       const data = await groqRequest(groqKey, history);
       const reply = data.choices?.[0]?.message?.content;
-
       if (!reply) { await message.reply('❌ L\'IA n\'a pas pu répondre. Un staff va prendre en charge.'); return; }
 
       history.push({ role: 'assistant', content: reply });
       if (history.length > 21) history.splice(1, 2);
 
-      const embed = new EmbedBuilder()
-        .setDescription(reply)
-        .setColor(0x7C3AED)
-        .setFooter({ text: '🤖 Nexora IA Premium • Un staff peut prendre en charge avec le bouton ci-dessus' });
-
-      await message.reply({ embeds: [embed] });
+      await message.reply({
+        embeds: [new EmbedBuilder()
+          .setDescription(reply)
+          .setColor(0x7C3AED)
+          .setFooter({ text: '🤖 Nexora IA • Un staff peut prendre en charge avec le bouton ci-dessus' })]
+      });
 
     } catch (err) {
       console.error('[Nexora IA] Erreur:', err);

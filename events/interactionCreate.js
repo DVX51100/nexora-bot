@@ -13,6 +13,14 @@ module.exports = {
   async execute(interaction, client) {
     if (!interaction.isModalSubmit()) return;
 
+    // ── Wizard /reaction modals ──────────────────────────
+    if (interaction.customId === 'rr_modal_titre' || interaction.customId === 'rr_modal_emoji') {
+      const reactionCmd = require('../commands/reaction');
+      await reactionCmd.handleInteraction(interaction, client);
+      return;
+    }
+
+    // ── Ticket modal ─────────────────────────────────────
     if (interaction.customId === 'ticket_modal') {
       const subject = interaction.fields.getTextInputValue('ticket_subject');
       const description = interaction.fields.getTextInputValue('ticket_description');
@@ -20,31 +28,18 @@ module.exports = {
       const user = interaction.user;
       const config = db.getConfig(guild.id);
 
-      // Répondre immédiatement pour éviter le timeout
       try {
         await interaction.reply({ content: '⏳ Création de ton ticket...', flags: 64 });
-      } catch {
-        return;
-      }
+      } catch { return; }
 
       try {
-        // Récupère ou crée la catégorie
         let category = null;
-        if (config.ticket_category) {
-          category = guild.channels.cache.get(config.ticket_category);
-        }
+        if (config.ticket_category) category = guild.channels.cache.get(config.ticket_category);
         if (!category) {
-          const existing = guild.channels.cache.find(c =>
-            c.type === ChannelType.GuildCategory && c.name.toLowerCase().includes('ticket')
-          );
-          if (existing) {
-            category = existing;
-            db.setConfigs(guild.id, { ticket_category: existing.id });
-          } else {
-            category = await guild.channels.create({
-              name: '🎫 Tickets',
-              type: ChannelType.GuildCategory
-            });
+          const existing = guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name.toLowerCase().includes('ticket'));
+          if (existing) { category = existing; db.setConfigs(guild.id, { ticket_category: existing.id }); }
+          else {
+            category = await guild.channels.create({ name: '🎫 Tickets', type: ChannelType.GuildCategory });
             db.setConfigs(guild.id, { ticket_category: category.id });
           }
         }
@@ -59,19 +54,10 @@ module.exports = {
           { id: client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] }
         ];
         if (config.ticket_support_role) {
-          overwrites.push({
-            id: config.ticket_support_role,
-            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
-          });
+          overwrites.push({ id: config.ticket_support_role, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] });
         }
 
-        const ticketChannel = await guild.channels.create({
-          name: channelName,
-          type: ChannelType.GuildText,
-          parent: category.id,
-          permissionOverwrites: overwrites
-        });
-
+        const ticketChannel = await guild.channels.create({ name: channelName, type: ChannelType.GuildText, parent: category.id, permissionOverwrites: overwrites });
         db.createTicket(guild.id, ticketChannel.id, user.id);
 
         const embed = new EmbedBuilder()

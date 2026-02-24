@@ -121,6 +121,11 @@ module.exports = {
           .setColor(0x00FF88)]
       });
 
+    // ── Reaction Wizard buttons ───────────────────────
+    } else if (customId === 'rr_finish' || customId === 'rr_cancel') {
+      const reactionCmd = require('../commands/reaction');
+      await reactionCmd.handleInteraction(interaction, client);
+
     // ── MUSIC Controls ───────────────────────────────────
     } else if (customId.startsWith('music_')) {
       const queue = client.musicQueues?.get(guild.id);
@@ -162,3 +167,5 @@ module.exports = {
     }
   }
 };
+
+// Note: rr_finish et rr_cancel sont gérés dans selectHandler via reactionCmd.handleInteraction
