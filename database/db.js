@@ -2,7 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 const DB_PATH = path.join(__dirname, 'nexora-data.json');
-const DEFAULT_DB = { guilds: {}, tickets: [], autoroles: {}, reactionRoles: {}, premium: {} };
+const DEFAULT_DB = {
+  guilds: {}, tickets: [], autoroles: {}, reactionRoles: {},
+  premium: {}, xp: {}, customCommands: {}
+};
 
 function load() {
   if (!fs.existsSync(DB_PATH)) {
@@ -14,6 +17,8 @@ function load() {
     if (!data.autoroles) data.autoroles = {};
     if (!data.reactionRoles) data.reactionRoles = {};
     if (!data.premium) data.premium = {};
+    if (!data.xp) data.xp = {};
+    if (!data.customCommands) data.customCommands = {};
     return data;
   } catch { return JSON.parse(JSON.stringify(DEFAULT_DB)); }
 }
@@ -27,7 +32,14 @@ function defaultConfig(guildId) {
     ticket_enabled: 0, ticket_category: null, ticket_channel: null,
     ticket_support_role: null, ticket_log_channel: null,
     ticket_message: 'Clique sur le bouton ci-dessous pour ouvrir un ticket.',
-    log_channel: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+    log_channel: null,
+    // Nouvelles clés
+    suggest_channel: null,
+    verify_role: null, verify_channel: null, verify_enabled: false,
+    antispam_enabled: false, antispam_max_messages: 5, antispam_action: 'mute',
+    antiraid_enabled: false, antiraid_min_age: 7,
+    xp_enabled: false, xp_notif_channel: null,
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString()
   };
 }
 
@@ -51,6 +63,8 @@ module.exports = {
     db.guilds[guildId].updated_at = new Date().toISOString();
     save(db);
   },
+
+  // ── TICKETS ───────────────────────────────────────────
   createTicket(guildId, channelId, userId) {
     const db = load();
     const ticket = { id: Date.now(), guild_id: guildId, channel_id: channelId, user_id: userId, status: 'open', created_at: new Date().toISOString(), closed_at: null };
@@ -160,5 +174,57 @@ module.exports = {
     const db = load();
     const p = db.premium[discordId];
     return p && p.status === 'active' && new Date(p.expires_at) > new Date();
+  },
+
+  // ── XP SYSTEM ─────────────────────────────────────────
+  getUserXp(guildId, userId) {
+    const db = load();
+    if (!db.xp[guildId]) return null;
+    return db.xp[guildId][userId] || null;
+  },
+  addXp(guildId, userId, amount) {
+    const db = load();
+    if (!db.xp[guildId]) db.xp[guildId] = {};
+    if (!db.xp[guildId][userId]) db.xp[guildId][userId] = { userId, xp: 0 };
+    db.xp[guildId][userId].xp += amount;
+    save(db);
+  },
+  setUserXp(guildId, userId, amount) {
+    const db = load();
+    if (!db.xp[guildId]) db.xp[guildId] = {};
+    db.xp[guildId][userId] = { userId, xp: amount };
+    save(db);
+  },
+  getAllXp(guildId) {
+    const db = load();
+    if (!db.xp[guildId]) return [];
+    return Object.values(db.xp[guildId]).sort((a, b) => b.xp - a.xp);
+  },
+
+  // ── CUSTOM COMMANDS ───────────────────────────────────
+  getCustomCommands(guildId) {
+    const db = load();
+    return db.customCommands[guildId] || [];
+  },
+  addCustomCommand(guildId, { trigger, response, exact }) {
+    const db = load();
+    if (!db.customCommands[guildId]) db.customCommands[guildId] = [];
+    // Remplace si le trigger existe déjà
+    const existing = db.customCommands[guildId].findIndex(c => c.trigger === trigger);
+    if (existing >= 0) {
+      db.customCommands[guildId][existing] = { trigger, response, exact: exact || false };
+    } else {
+      db.customCommands[guildId].push({ trigger, response, exact: exact || false });
+    }
+    save(db);
+  },
+  removeCustomCommand(guildId, trigger) {
+    const db = load();
+    if (!db.customCommands[guildId]) return false;
+    const before = db.customCommands[guildId].length;
+    db.customCommands[guildId] = db.customCommands[guildId].filter(c => c.trigger !== trigger);
+    const removed = db.customCommands[guildId].length < before;
+    if (removed) save(db);
+    return removed;
   }
 };

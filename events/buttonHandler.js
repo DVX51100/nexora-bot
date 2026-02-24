@@ -7,15 +7,86 @@ const { AudioPlayerStatus } = require('@discordjs/voice');
 
 const NEXORA_COLOR = 0x7C3AED;
 
-// Map pour stocker l'état IA par ticket : channelId -> { active: bool, handler: fn }
 const ticketAI = new Map();
 
 module.exports = {
   name: 'buttonHandler',
-  ticketAI, // exporté pour être utilisé dans interactionCreate
+  ticketAI,
 
   async execute(interaction, client) {
     const { customId, guild, member } = interaction;
+
+    // ── VÉRIFICATION ─────────────────────────────────────
+    if (customId === 'verify_click') {
+      const config = db.getConfig(guild.id);
+
+      if (!config.verify_enabled) {
+        return interaction.reply({ content: '❌ La vérification n\'est pas activée.', ephemeral: true });
+      }
+
+      if (!config.verify_role) {
+        return interaction.reply({ content: '❌ Rôle de vérification non configuré.', ephemeral: true });
+      }
+
+      const role = guild.roles.cache.get(config.verify_role);
+      if (!role) return interaction.reply({ content: '❌ Rôle introuvable.', ephemeral: true });
+
+      if (member.roles.cache.has(role.id)) {
+        return interaction.reply({ content: '✅ Tu es déjà vérifié !', ephemeral: true });
+      }
+
+      try {
+        await member.roles.add(role);
+        return interaction.reply({
+          embeds: [new EmbedBuilder()
+            .setTitle('✅ Vérification réussie !')
+            .setDescription(`Bienvenue ! Tu as reçu le rôle **${role.name}** et tu peux maintenant accéder au serveur.`)
+            .setColor(0x00FF88)
+            .setFooter({ text: 'Nexora • Vérification' })],
+          ephemeral: true
+        });
+      } catch (err) {
+        console.error('[Nexora Verify] Erreur ajout rôle:', err);
+        return interaction.reply({ content: '❌ Impossible d\'ajouter le rôle. Contacte un admin.', ephemeral: true });
+      }
+    }
+
+    // ── GIVEAWAY: Participer ──────────────────────────────
+    if (customId === 'giveaway_enter') {
+      const giveawayCmd = require('../commands/giveaway');
+      const guildGiveaways = giveawayCmd.giveaways.get(guild.id);
+
+      if (!guildGiveaways) return interaction.reply({ content: '❌ Giveaway introuvable.', ephemeral: true });
+
+      const gw = guildGiveaways.get(interaction.message.id);
+      if (!gw) return interaction.reply({ content: '❌ Giveaway introuvable.', ephemeral: true });
+      if (gw.ended) return interaction.reply({ content: '⏰ Ce giveaway est terminé !', ephemeral: true });
+
+      const userId = interaction.user.id;
+
+      if (gw.participants.includes(userId)) {
+        // Désinscription
+        gw.participants = gw.participants.filter(id => id !== userId);
+
+        // Mise à jour de l'embed
+        const oldEmbed = interaction.message.embeds[0];
+        const newEmbed = EmbedBuilder.from(oldEmbed)
+          .setFooter({ text: `Nexora • Giveaways • ${gw.participants.length} participant(s)` });
+        await interaction.message.edit({ embeds: [newEmbed] }).catch(() => {});
+
+        return interaction.reply({ content: '✅ Tu t\'es désinscrit du giveaway.', ephemeral: true });
+      } else {
+        // Inscription
+        gw.participants.push(userId);
+
+        const oldEmbed = interaction.message.embeds[0];
+        const newEmbed = EmbedBuilder.from(oldEmbed)
+          .setFooter({ text: `Nexora • Giveaways • ${gw.participants.length} participant(s)` });
+        await interaction.message.edit({ embeds: [newEmbed] }).catch(() => {});
+
+        return interaction.reply({ content: '🎉 Tu participes au giveaway ! Bonne chance !', ephemeral: true });
+      }
+    }
 
     // ── TICKET: Ouvrir le modal ──────────────────────────
     if (customId === 'ticket_create') {
@@ -46,7 +117,6 @@ module.exports = {
 
       await interaction.showModal(modal);
 
-    // ── TICKET: Fermer ───────────────────────────────────
     } else if (customId === 'ticket_close_confirm') {
       const ticket = db.getTicket(interaction.channelId);
       if (!ticket) return interaction.reply({ content: '⚠️ Ticket introuvable.', ephemeral: true });
@@ -82,7 +152,6 @@ module.exports = {
 
       setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
 
-    // ── TICKET: IA - Activer ─────────────────────────────
     } else if (customId === 'ticket_ai_start') {
       const ticket = db.getTicket(interaction.channelId);
       if (!ticket) return interaction.reply({ content: '⚠️ Ce salon n\'est pas un ticket.', ephemeral: true });
@@ -103,12 +172,10 @@ module.exports = {
         components: [row]
       });
 
-    // ── TICKET: Prendre en charge (désactive l'IA) ───────
     } else if (customId === 'ticket_claim') {
       const config = db.getConfig(guild.id);
       const supportRoleId = config.ticket_support_role;
 
-      // Vérif que c'est bien un staff
       if (supportRoleId && !member.roles.cache.has(supportRoleId) && !member.permissions.has(PermissionFlagsBits.Administrator)) {
         return interaction.reply({ content: '⚠️ Seul le staff peut prendre en charge un ticket.', ephemeral: true });
       }
@@ -121,12 +188,10 @@ module.exports = {
           .setColor(0x00FF88)]
       });
 
-    // ── Reaction Wizard buttons ───────────────────────
     } else if (customId === 'rr_finish' || customId === 'rr_cancel') {
       const reactionCmd = require('../commands/reaction');
       await reactionCmd.handleInteraction(interaction, client);
 
-    // ── MUSIC Controls ───────────────────────────────────
     } else if (customId.startsWith('music_')) {
       const queue = client.musicQueues?.get(guild.id);
 
@@ -167,5 +232,3 @@ module.exports = {
     }
   }
 };
-
-// Note: rr_finish et rr_cancel sont gérés dans selectHandler via reactionCmd.handleInteraction
