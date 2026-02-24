@@ -55,7 +55,6 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('config')
         .setDescription('Configurer le système XP')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addBooleanOption(opt =>
           opt.setName('activer').setDescription('Activer/désactiver le système XP').setRequired(true)
         )
@@ -66,7 +65,6 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('donner')
         .setDescription('Donner de l\'XP à un membre')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addUserOption(opt => opt.setName('membre').setDescription('Membre').setRequired(true))
         .addIntegerOption(opt => opt.setName('xp').setDescription('Quantité d\'XP').setMinValue(1).setRequired(true))
     )

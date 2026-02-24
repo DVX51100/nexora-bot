@@ -23,7 +23,6 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('config')
         .setDescription('Configurer le salon des suggestions')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addChannelOption(opt =>
           opt.setName('salon')
             .setDescription('Salon des suggestions')
@@ -34,7 +33,6 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('accepter')
         .setDescription('Accepter une suggestion')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addStringOption(opt =>
           opt.setName('message_id').setDescription('ID du message suggestion').setRequired(true)
         )
@@ -45,14 +43,14 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('refuser')
         .setDescription('Refuser une suggestion')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addStringOption(opt =>
           opt.setName('message_id').setDescription('ID du message suggestion').setRequired(true)
         )
         .addStringOption(opt =>
           opt.setName('raison').setDescription('Raison (optionnel)').setRequired(false)
         )
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction, client) {
     const sub = interaction.options.getSubcommand();
