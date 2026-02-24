@@ -71,9 +71,9 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName('reset')
         .setDescription('Réinitialiser l\'XP d\'un membre')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addUserOption(opt => opt.setName('membre').setDescription('Membre').setRequired(true))
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction, client) {
     const sub = interaction.options.getSubcommand();
